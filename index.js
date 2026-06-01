@@ -3,7 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 
-const config = require('./config');
+import config from './config.js';
 const {
   rooms,
   createRoom, getRoom, deleteRoom,
