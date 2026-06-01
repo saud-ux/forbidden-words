@@ -1,0 +1,18 @@
+{
+  "name": "forbidden-words",
+  "version": "1.0.0",
+  "description": "Taboo-style Arabic multiplayer game",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "test": "node server/normalize.test.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
