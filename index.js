@@ -3,7 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 
-import config from './config.js';
+const config = require('./config');
 const {
   rooms,
   createRoom, getRoom, deleteRoom,
@@ -12,7 +12,7 @@ const {
   scoreboard,
 } = require('./rooms');
 const { detectViolation, isCorrectGuess } = require('./normalize');
-const cards = require('../data/cards');
+const cards = require('../cards.js');
 
 const app = express();
 const server = http.createServer(app);
