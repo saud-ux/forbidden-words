@@ -245,6 +245,50 @@ $('btn-random-card').addEventListener('click', () => {
   });
 });
 
+// Add custom card — open modal
+$('btn-add-card').addEventListener('click', () => {
+  $('inp-card-secret').value = '';
+  document.querySelectorAll('.inp-forbidden').forEach(i => i.value = '');
+  hide('modal-add-error');
+  show('modal-add-card');
+  $('inp-card-secret').focus();
+});
+
+$('btn-cancel-add-card').addEventListener('click', () => hide('modal-add-card'));
+
+// Close modal on overlay click
+$('modal-add-card').addEventListener('click', e => {
+  if (e.target === $('modal-add-card')) hide('modal-add-card');
+});
+
+$('btn-submit-add-card').addEventListener('click', () => {
+  const secret = $('inp-card-secret').value.trim();
+  const forbidden = [...document.querySelectorAll('.inp-forbidden')]
+    .map(i => i.value.trim()).filter(Boolean);
+  const errEl = $('modal-add-error');
+
+  if (!secret) {
+    errEl.textContent = 'أدخل الكلمة السرية';
+    show(errEl); return;
+  }
+  if (!forbidden.length) {
+    errEl.textContent = 'أدخل كلمة محظورة على الأقل';
+    show(errEl); return;
+  }
+  hide(errEl);
+  $('btn-submit-add-card').disabled = true;
+
+  socket.emit('host:add_card', { code: state.roomCode, secret, forbidden }, res => {
+    $('btn-submit-add-card').disabled = false;
+    if (!res?.ok) {
+      errEl.textContent = res?.error || 'فشل الإضافة';
+      show(errEl); return;
+    }
+    hide('modal-add-card');
+    showToast(`✅ تمت إضافة: ${esc(secret)}`, 'green');
+  });
+});
+
 // Start round
 $('btn-start-round').addEventListener('click', () => {
   socket.emit('host:start_round', { code: state.roomCode }, res => {
@@ -293,13 +337,14 @@ socket.on('host:card_bank', ({ cards }) => {
   list.innerHTML = '';
   cards.forEach(c => {
     const item = document.createElement('div');
-    item.className = 'card-bank-item' + (c.used ? ' used' : '');
+    item.className = 'card-bank-item' +
+      (c.used   ? ' used'   : '') +
+      (c.custom ? ' custom' : '');
     item.textContent = c.secret;
     item.dataset.index = c.index;
     if (!c.used) {
       item.addEventListener('click', () => {
         socket.emit('host:pick_card', { code: state.roomCode, cardIndex: c.index });
-        // Highlight selected
         document.querySelectorAll('.card-bank-item').forEach(el => el.classList.remove('selected'));
         item.classList.add('selected');
       });

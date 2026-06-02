@@ -428,3 +428,74 @@ select option { background: var(--bg2); }
   .host-col-score  { max-height: 260px; }
   .host-col-main   { flex: unset; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   CARD BANK BUTTONS ROW
+══════════════════════════════════════════════════════════ */
+.card-bank-btns {
+  display: flex; gap: 6px; margin-bottom: 8px;
+}
+.card-bank-btns .btn { flex: 1; }
+
+/* Custom card highlight in bank */
+.card-bank-item.custom {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.card-bank-item.custom::before {
+  content: '✏️ ';
+  font-size: .75rem;
+}
+
+/* ══════════════════════════════════════════════════════════
+   MODAL — ADD CUSTOM CARD
+══════════════════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,.75);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  animation: fadeIn .15s ease;
+}
+.modal-overlay.hidden { display: none !important; }
+
+.modal-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 24px;
+  width: 100%; max-width: 420px;
+  display: flex; flex-direction: column; gap: 10px;
+  animation: popIn .2s ease;
+}
+
+.modal-title {
+  font-size: 1.15rem; font-weight: 900; color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.modal-label {
+  font-size: .85rem; font-weight: 700; color: var(--text-dim);
+}
+
+.modal-input {
+  width: 100%;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-family: var(--font); font-size: .95rem;
+  padding: 9px 12px;
+  transition: border-color .15s;
+  text-align: right;
+}
+.modal-input:focus {
+  outline: none; border-color: var(--accent);
+}
+
+.forbidden-inputs-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+
+.modal-actions {
+  display: flex; gap: 10px; margin-top: 6px;
+}
+.modal-actions .btn { flex: 1; }

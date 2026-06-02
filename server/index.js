@@ -8,7 +8,7 @@ const {
   rooms,
   createRoom, getRoom, deleteRoom,
   joinRoom, removePlayer, getActivePlayers,
-  pickCard, getExplainer, rotateExplainer, setExplainerBySocketId,
+  addCustomCard, pickCard, getExplainer, rotateExplainer, setExplainerBySocketId,
   scoreboard,
 } = require('./rooms');
 const { detectViolation, isCorrectGuess } = require('./normalize');
@@ -80,6 +80,18 @@ io.on('connection', (socket) => {
     if (explainer) {
       io.to(explainer.socketId).emit('explainer:card', { card });
     }
+  });
+
+  // ── Host: add a custom card ──────────────────────────────────
+  socket.on('host:add_card', ({ code, secret, forbidden }, cb) => {
+    const room = getRoom(code);
+    if (!room || room.host !== socket.id) return cb?.({ ok: false });
+    if (!secret?.trim()) return cb?.({ ok: false, error: 'أدخل الكلمة السرية' });
+    const words = (forbidden || []).map(f => f.trim()).filter(Boolean);
+    if (!words.length) return cb?.({ ok: false, error: 'أدخل كلمة محظورة على الأقل' });
+    addCustomCard(room, { secret: secret.trim(), forbidden: words });
+    cb?.({ ok: true });
+    emitLobby(room);
   });
 
   // ── Host: assign explainer by socketId ──────────────────────────────────
@@ -409,9 +421,15 @@ function emitLobby(room) {
     phase: room.phase,
     streakEnabled: room.streakEnabled,
   });
-  // Also send the card bank list to the host
+  // Also send the card bank list (global + custom) to the host
+  const allCards = [...cards, ...room.customCards];
   io.to(room.host).emit('host:card_bank', {
-    cards: cards.map((c, i) => ({ index: i, secret: c.secret, used: room.usedCardIndices.has(i) })),
+    cards: allCards.map((c, i) => ({
+      index: i,
+      secret: c.secret,
+      used: room.usedCardIndices.has(i),
+      custom: i >= cards.length,
+    })),
   });
 }
 

@@ -29,6 +29,7 @@ function createRoom(hostSocketId, hostName) {
     hostGraceTimer: null,
     hostName,
     players: [],          // [{ socketId, name, score, streak, sessionKey }]
+    customCards: [],      // cards added by host during this session
     usedCardIndices: new Set(),
     currentCard: null,    // { secret, forbidden }
     forbiddenSet: null,   // normalized Set — built when card is picked
@@ -89,9 +90,18 @@ function getActivePlayers(room) {
   return room.players.filter(p => !p.disconnected);
 }
 
+// Add a custom card to a room. Returns its index in the combined bank.
+function addCustomCard(room, { secret, forbidden }) {
+  const idx = cards.length + room.customCards.length;
+  room.customCards.push({ secret, forbidden });
+  return idx;
+}
+
 // Pick a card (by index, or random if index === -1). Returns null if bank exhausted.
+// Indices 0..cards.length-1 → global bank; cards.length+ → custom cards.
 function pickCard(room, cardIndex = -1) {
-  const available = cards
+  const allCards = [...cards, ...room.customCards];
+  const available = allCards
     .map((c, i) => i)
     .filter(i => !room.usedCardIndices.has(i));
   if (!available.length) return null;
@@ -101,9 +111,9 @@ function pickCard(room, cardIndex = -1) {
     : available[Math.floor(Math.random() * available.length)];
 
   room.usedCardIndices.add(idx);
-  const card = cards[idx];
+  const card = allCards[idx];
   room.currentCard = { ...card, index: idx };
-  // Build forbidden set: secret word + all 5 forbidden words
+  // Build forbidden set: secret word + all forbidden words
   room.forbiddenSet = buildForbiddenSet([card.secret, ...card.forbidden]);
   return room.currentCard;
 }
@@ -149,6 +159,7 @@ module.exports = {
   joinRoom,
   removePlayer,
   getActivePlayers,
+  addCustomCard,
   pickCard,
   getExplainer,
   rotateExplainer,

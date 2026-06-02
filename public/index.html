@@ -61,7 +61,10 @@
         <!-- Left column: card bank -->
         <div class="host-col host-col-cards">
           <h3 class="col-title">بنك البطاقات</h3>
-          <button id="btn-random-card" class="btn btn-primary btn-sm mb-8">🎲 بطاقة عشوائية</button>
+          <div class="card-bank-btns">
+            <button id="btn-random-card" class="btn btn-primary btn-sm">🎲 عشوائية</button>
+            <button id="btn-add-card" class="btn btn-secondary btn-sm">➕ إضافة</button>
+          </div>
           <div id="card-bank-list" class="card-bank-list"></div>
         </div>
 
@@ -255,6 +258,30 @@
       <h2>🏆 انتهت اللعبة!</h2>
       <div id="final-scoreboard" class="scoreboard-list final-sb"></div>
       <button id="btn-play-again" class="btn btn-primary btn-lg mt-16">العب مجدداً</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       MODAL: Add custom card (host only)
+  ══════════════════════════════════════ -->
+  <div id="modal-add-card" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">➕ إضافة بطاقة جديدة</h3>
+      <label class="modal-label">الكلمة السرية</label>
+      <input id="inp-card-secret" class="modal-input" type="text" maxlength="30" placeholder="مثال: برج إيفل" autocomplete="off" />
+      <label class="modal-label">الكلمات المحظورة</label>
+      <div id="forbidden-inputs" class="forbidden-inputs-grid">
+        <input class="inp-forbidden modal-input" type="text" maxlength="20" placeholder="محظورة ١" autocomplete="off" />
+        <input class="inp-forbidden modal-input" type="text" maxlength="20" placeholder="محظورة ٢" autocomplete="off" />
+        <input class="inp-forbidden modal-input" type="text" maxlength="20" placeholder="محظورة ٣" autocomplete="off" />
+        <input class="inp-forbidden modal-input" type="text" maxlength="20" placeholder="محظورة ٤" autocomplete="off" />
+        <input class="inp-forbidden modal-input" type="text" maxlength="20" placeholder="محظورة ٥" autocomplete="off" />
+      </div>
+      <p id="modal-add-error" class="error-msg hidden"></p>
+      <div class="modal-actions">
+        <button id="btn-cancel-add-card" class="btn btn-ghost">إلغاء</button>
+        <button id="btn-submit-add-card" class="btn btn-primary">إضافة</button>
+      </div>
     </div>
   </div>
 
