@@ -12,7 +12,7 @@ const {
   scoreboard,
 } = require('./rooms');
 const { detectViolation, isCorrectGuess } = require('./normalize');
-const cards = require('../cards.js');
+const cards = require('../data/cards.js');
 
 const app = express();
 const server = http.createServer(app);
