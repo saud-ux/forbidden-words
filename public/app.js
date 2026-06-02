@@ -1,7 +1,29 @@
 /* ── Forbidden Words — client app ─────────────────────────── */
 'use strict';
 
-const socket = io();
+const socket = io({ transports: ['websocket', 'polling'] });
+
+// ── Connection guard ──────────────────────────────────────────
+function setLandingConnecting(on) {
+  const btns = [$('btn-create'), $('btn-join')];
+  btns.forEach(b => { if (b) b.disabled = on; });
+  let banner = document.getElementById('conn-banner');
+  if (on) {
+    if (!banner) {
+      banner = document.createElement('p');
+      banner.id = 'conn-banner';
+      banner.style.cssText = 'text-align:center;color:#f59e0b;margin-top:8px;font-size:.9rem';
+      banner.textContent = 'جاري الاتصال بالخادم…';
+      const card = document.querySelector('.landing-card');
+      if (card) card.appendChild(banner);
+    }
+  } else {
+    if (banner) banner.remove();
+  }
+}
+setLandingConnecting(true);
+socket.on('connect', () => setLandingConnecting(false));
+socket.on('disconnect', () => setLandingConnecting(true));
 
 // ── State ─────────────────────────────────────────────────────
 const state = {
