@@ -156,13 +156,13 @@ function showResultOverlay(overlayId, contentId, reason, data) {
       <p>أجاب <strong>${esc(data.winnerName)}</strong> بشكل صحيح</p>
       <div class="secret-reveal">${esc(data.secret)}</div>
       <p>+${data.guesserPoints} نقطة</p>
-      ${data.explainerPoints ? `<p style="color:var(--text-dim)">المشرح: +${data.explainerPoints} نقطة</p>` : ''}
+      ${data.explainerPoints ? `<p style="color:var(--text-dim)">الشارح: +${data.explainerPoints} نقطة</p>` : ''}
     </div>`;
   } else if (reason === 'violation') {
     soundViolation();
     html = `<div class="result-content">
       <h2 style="color:var(--red)">⛔ مخالفة!</h2>
-      <p>قال المشرح الكلمة المحظورة: <strong style="color:var(--red)">${esc(data.violatingWord || '')}</strong></p>
+      <p>قال الشارح الكلمة المحظورة: <strong style="color:var(--red)">${esc(data.violatingWord || '')}</strong></p>
       <div class="secret-reveal">${esc(data.secret)}</div>
       <p style="color:var(--text-dim)">0 نقطة لهذه الجولة</p>
     </div>`;
@@ -327,6 +327,25 @@ socket.on('room:lobby', ({ players, phase, streakEnabled: se }) => {
   streakEnabled = se;
   $('streak-status').textContent = se ? 'تشغيل' : 'إيقاف';
 
+  // If this player WAS the explainer but is no longer, switch back to guesser
+  if (state.role === 'explainer') {
+    const me = players.find(p => p.socketId === socket.id);
+    if (me && !me.isExplainer) {
+      state.role = 'guesser';
+      hide('exp-input-area');
+      hide('exp-card');
+      show('exp-waiting');
+      hide('exp-violation-overlay');
+      hide('exp-result-overlay');
+      $('guesser-live-text').textContent = 'في انتظار الشارح…';
+      $('guesser-live-text').classList.remove('has-text');
+      hide('guesser-input-area');
+      hide('guesser-violation-overlay');
+      hide('guesser-result-overlay');
+      showScreen('screen-guesser');
+    }
+  }
+
   // Update explainer dropdown
   const sel = $('sel-explainer');
   const current = sel.value;
@@ -348,7 +367,7 @@ socket.on('room:lobby', ({ players, phase, streakEnabled: se }) => {
   players.forEach(p => {
     const row = document.createElement('div');
     row.className = 'player-row';
-    row.innerHTML = `<span>${esc(p.name)}</span><button class="btn btn-sm btn-ghost" data-id="${esc(p.socketId)}">مشرح</button>`;
+    row.innerHTML = `<span>${esc(p.name)}</span><button class="btn btn-sm btn-ghost" data-id="${esc(p.socketId)}">شارح</button>`;
     row.querySelector('button').addEventListener('click', () => {
       socket.emit('host:assign_explainer', { code: state.roomCode, socketId: p.socketId });
     });
@@ -469,7 +488,7 @@ socket.on('round:start', ({ explainerName, duration, scoreboard: sb }) => {
   if (state.role === 'guesser') {
     state.currentExplainerName = explainerName;
     const badge = $('guesser-explainer-name');
-    badge.innerHTML = `المشرح: <strong>${esc(explainerName)}</strong>`;
+    badge.innerHTML = `الشارح: <strong>${esc(explainerName)}</strong>`;
     show(badge);
     show('guesser-input-area');
     hide('guesser-violation-overlay');
