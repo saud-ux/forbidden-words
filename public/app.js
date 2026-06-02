@@ -85,6 +85,21 @@ function soundTick() {
 function soundGuessWrong() {
   playTone(250, 'square', .12, .15);
 }
+function soundCountBeep() {        // 3 … 2 … 1 tick
+  playTone(440, 'triangle', .18, .25);
+}
+function soundGo() {               // انطلق!
+  playTone(523, 'sine', .12, .3);
+  playTone(784, 'sine', .25, .3, .1);
+}
+function soundHeartbeat() {        // low double-thump in the final seconds
+  playTone(70, 'sine', .14, .4);
+  playTone(60, 'sine', .18, .4, .16);
+}
+function soundNear() {            // teasing "so close" chirp
+  playTone(660, 'triangle', .12, .22);
+  playTone(560, 'triangle', .16, .22, .12);
+}
 
 // ── Screens ────────────────────────────────────────────────────
 function showScreen(id) {
@@ -110,7 +125,28 @@ function updateTimer(arcId, numId, remaining, total) {
   num.textContent = remaining;
   arc.classList.toggle('warning', remaining <= 20 && remaining > 10);
   arc.classList.toggle('danger',  remaining <= 10);
-  if (remaining > 0 && remaining <= 10) soundTick();
+  // Final-seconds panic: red pulsing vignette + escalating audio.
+  setPanic(remaining > 0 && remaining <= 10);
+  if (remaining > 5 && remaining <= 10) soundTick();
+  else if (remaining > 0 && remaining <= 5) soundHeartbeat();
+}
+
+// Pulsing red vignette over the whole screen for the final seconds of a round.
+let panicVignette = null;
+function setPanic(on) {
+  if (on && !panicVignette) {
+    panicVignette = document.createElement('div');
+    panicVignette.id = 'panic-vignette';
+    document.body.appendChild(panicVignette);
+  }
+  document.body.classList.toggle('panic', on);
+}
+
+// Hot-streak flame, shown only while streak scoring is enabled and a player has
+// strung together 2+ consecutive wins.
+function streakFlame(p) {
+  if (!state.streakEnabled || !p.streak || p.streak < 2) return '';
+  return ` <span class="streak-flame">🔥${p.streak}</span>`;
 }
 
 function renderScoreboard(players, containerId) {
@@ -121,7 +157,7 @@ function renderScoreboard(players, containerId) {
   sorted.forEach(p => {
     const row = document.createElement('div');
     row.className = 'score-row' + (p.isExplainer ? ' explainer' : '');
-    row.innerHTML = `<span class="player-name">${esc(p.name)}${p.isExplainer ? ' 🎤' : ''}</span><span class="player-pts">${p.score}</span>`;
+    row.innerHTML = `<span class="player-name">${esc(p.name)}${p.isExplainer ? ' 🎤' : ''}${streakFlame(p)}</span><span class="player-pts">${p.score}</span>`;
     el.appendChild(row);
   });
 }
@@ -134,7 +170,7 @@ function renderScoreboardCompact(players, containerId) {
   sorted.forEach(p => {
     const chip = document.createElement('div');
     chip.className = 'sc-chip' + (p.isExplainer ? ' is-explainer' : '');
-    chip.innerHTML = `${esc(p.name)} <span class="sc-pts">${p.score}</span>`;
+    chip.innerHTML = `${esc(p.name)} <span class="sc-pts">${p.score}</span>${streakFlame(p)}`;
     el.appendChild(chip);
   });
 }
@@ -623,9 +659,15 @@ function submitGuess() {
       show(fb);
     } else if (res.ok) {
       // A genuine wrong guess (the round is still live).
-      soundGuessWrong();
-      fb.textContent = '❌ خطأ، حاول مجدداً';
-      fb.className = 'guess-feedback wrong';
+      if (res.near) {
+        soundNear();
+        fb.textContent = '🔥 قريب جدًا!';
+        fb.className = 'guess-feedback near';
+      } else {
+        soundGuessWrong();
+        fb.textContent = '❌ خطأ، حاول مجدداً';
+        fb.className = 'guess-feedback wrong';
+      }
       show(fb);
       setTimeout(() => hide(fb), 1500);
       $('guesser-inp').value = '';
@@ -646,6 +688,61 @@ $('guesser-inp').addEventListener('keydown', e => { if (e.key === 'Enter') submi
 socket.on('room:streak_toggle', ({ enabled }) => {
   state.streakEnabled = enabled;
 });
+
+// ── Pre-round 3-2-1 → انطلق! countdown (server fires `round:countdown`) ──────
+function runCountdown(seconds) {
+  let n = seconds;
+  (function step() {
+    if (n > 0) {
+      FX.bigText(String(n), { color: 'var(--accent)', ms: 850 });
+      soundCountBeep();
+      n -= 1;
+      setTimeout(step, 1000);
+    } else {
+      FX.bigText('انطلق!', { color: 'var(--green)', ms: 850 });
+      soundGo();
+    }
+  })();
+}
+socket.on('round:countdown', ({ seconds }) => runCountdown(seconds || 3));
+
+// ── Global round juice — fires once per client, regardless of role ──────────
+socket.on('round:end', (data) => {
+  setPanic(false);
+  if (data.reason === 'correct') {
+    FX.flash('rgba(38,212,124,0.30)');
+    FX.confetti({ count: 160, origin: 'top' });
+    // Streak fire: celebrate a hot winner (only meaningful with streak scoring on)
+    if (state.streakEnabled) {
+      const w = (data.scoreboard || []).find(p => p.name === data.winnerName);
+      if (w && w.streak >= 2) {
+        setTimeout(() => FX.bigText('🔥 ' + w.streak, { color: 'var(--accent)', ms: 1100 }), 350);
+      }
+    }
+  }
+});
+
+socket.on('round:violation', () => {
+  FX.flash('rgba(232,54,93,0.32)');
+  FX.shake('hard');
+});
+
+// ── Live "someone guessed wrong" ping — builds the race tension ─────────────
+let wrongPingWrap = null;
+function showWrongPing(name, near) {
+  if (!wrongPingWrap) {
+    wrongPingWrap = document.createElement('div');
+    wrongPingWrap.id = 'wrong-ping-wrap';
+    document.body.appendChild(wrongPingWrap);
+  }
+  const chip = document.createElement('div');
+  chip.className = 'wrong-ping' + (near ? ' near' : '');
+  chip.textContent = (near ? '🔥 ' + name + ' اقترب!' : '❌ ' + name);
+  wrongPingWrap.appendChild(chip);
+  setTimeout(() => chip.remove(), 1400);
+  playTone(near ? 560 : 300, 'square', .07, .07); // soft buzz
+}
+socket.on('round:wrong_guess', ({ name, near }) => showWrongPing(name, near));
 
 socket.on('room:host_disconnected', () => {
   showBanner('انقطع اتصال المضيف… في انتظار إعادة الاتصال');

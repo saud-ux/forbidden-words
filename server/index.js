@@ -11,7 +11,7 @@ const {
   addCustomCard, pickCard, getExplainer, rotateExplainer, setExplainerBySocketId,
   scoreboard,
 } = require('./rooms');
-const { detectViolation, isCorrectGuess } = require('./normalize');
+const { detectViolation, isCorrectGuess, isNearMiss } = require('./normalize');
 const cards = require('../data/cards.js');
 
 const app = express();
@@ -194,7 +194,11 @@ io.on('connection', (socket) => {
     if (!room.currentCard) return cb?.({ ok: false, reason: 'no_card' });
 
     if (!isCorrectGuess(guess, room.currentCard.secret)) {
-      return cb?.({ ok: true, correct: false });
+      // Wrong — tell the room someone tried (builds the race tension) without
+      // leaking the guess, and tell the guesser privately if they were close.
+      const near = isNearMiss(guess, room.currentCard.secret);
+      socket.to(code).emit('round:wrong_guess', { name: player.name, near });
+      return cb?.({ ok: true, correct: false, near });
     }
 
     // ── First correct guess wins ──
@@ -416,6 +420,7 @@ function emitLobby(room) {
       socketId: p.socketId,
       name: p.name,
       score: p.score,
+      streak: p.streak,
       isExplainer: p === explainer,
     })),
     phase: room.phase,

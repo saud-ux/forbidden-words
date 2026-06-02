@@ -179,6 +179,40 @@ function isCorrectGuess(guess, secret) {
   return false;
 }
 
+/** Classic Levenshtein edit distance between two strings. */
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let cur = [i];
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
+
+/**
+ * Is `guess` a *near miss* of `secret` — wrong, but only a tiny edit away?
+ * Used to reward "🔥 قريب جدًا!" feedback. Deliberately conservative so an
+ * unrelated word never reads as "close": at most 1 edit for short answers, 2
+ * for longer ones. Never returns true for an actually-correct guess.
+ */
+function isNearMiss(guess, secret) {
+  const ns = normalizeArabic(secret);
+  const ng = normalizeArabic(guess);
+  if (!ns || !ng) return false;
+  if (isCorrectGuess(guess, secret)) return false;
+  const dist = levenshtein(ns, ng);
+  if (dist === 0) return false;
+  const threshold = ns.length >= 6 ? 2 : 1;
+  return dist <= threshold;
+}
+
 module.exports = {
   normalizeArabic,
   candidateForms,
@@ -187,4 +221,6 @@ module.exports = {
   tokenizeCompleted,
   detectViolation,
   isCorrectGuess,
+  levenshtein,
+  isNearMiss,
 };

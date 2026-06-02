@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const { ROUND_DURATION_SECONDS, STREAK_ENABLED_DEFAULT, ROOM_CODE_DIGITS } = require('./config');
 const { buildForbiddenSet } = require('./normalize');
 const cards = require('../data/cards');
+const { loadCustomCards, saveCustomCard } = require('./customCards');
 
 const rooms = {}; // roomCode → RoomState
 
@@ -29,7 +30,7 @@ function createRoom(hostSocketId, hostName) {
     hostGraceTimer: null,
     hostName,
     players: [],          // [{ socketId, name, score, streak, sessionKey }]
-    customCards: [],      // cards added by host during this session
+    customCards: loadCustomCards(), // host-added cards, persisted across rooms/restarts
     usedCardIndices: new Set(),
     currentCard: null,    // { secret, forbidden }
     forbiddenSet: null,   // normalized Set — built when card is picked
@@ -90,10 +91,12 @@ function getActivePlayers(room) {
   return room.players.filter(p => !p.disconnected);
 }
 
-// Add a custom card to a room. Returns its index in the combined bank.
+// Add a custom card to a room AND persist it so future rooms get it too.
+// Returns its index in the combined bank.
 function addCustomCard(room, { secret, forbidden }) {
   const idx = cards.length + room.customCards.length;
   room.customCards.push({ secret, forbidden });
+  saveCustomCard({ secret, forbidden });
   return idx;
 }
 

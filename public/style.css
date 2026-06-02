@@ -499,3 +499,90 @@ select option { background: var(--bg2); }
   display: flex; gap: 10px; margin-top: 6px;
 }
 .modal-actions .btn { flex: 1; }
+
+/* ══════════════════════════════════════════════════════════
+   FX — juice classes used by effects.js (countdown, shake)
+══════════════════════════════════════════════════════════ */
+/* Big centered number/text pop — the 3-2-1 countdown and "انطلق!" */
+.fx-bigtext {
+  position: fixed; inset: 0; z-index: 600;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font); font-weight: 900;
+  font-size: clamp(5rem, 26vw, 15rem);
+  pointer-events: none; user-select: none;
+  text-shadow: 0 0 50px currentColor;
+  animation: fxBigtext .85s cubic-bezier(.2,.8,.3,1) forwards;
+}
+@keyframes fxBigtext {
+  0%   { opacity: 0; transform: scale(.3); }
+  25%  { opacity: 1; transform: scale(1.08); }
+  70%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+/* Screen shake (applied to <body> by FX.shake) */
+.fx-shake      { animation: fxShake .5s ease; }
+.fx-shake-hard { animation: fxShakeHard .6s ease; }
+@keyframes fxShake {
+  0%,100% { transform: translate(0,0); }
+  20% { transform: translate(-5px, 3px); }
+  40% { transform: translate(5px, -3px); }
+  60% { transform: translate(-4px, -2px); }
+  80% { transform: translate(4px, 2px); }
+}
+@keyframes fxShakeHard {
+  0%,100% { transform: translate(0,0) rotate(0); }
+  15% { transform: translate(-9px, 5px) rotate(-.6deg); }
+  30% { transform: translate(9px, -6px) rotate(.6deg); }
+  45% { transform: translate(-8px, -4px) rotate(-.4deg); }
+  60% { transform: translate(8px, 5px) rotate(.4deg); }
+  80% { transform: translate(-5px, 3px) rotate(-.2deg); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   FINAL-SECONDS PANIC VIGNETTE
+══════════════════════════════════════════════════════════ */
+#panic-vignette {
+  position: fixed; inset: 0; z-index: 80; pointer-events: none;
+  box-shadow: inset 0 0 150px 50px rgba(232,54,93,.55);
+  opacity: 0; transition: opacity .35s ease;
+}
+body.panic #panic-vignette {
+  opacity: 1;
+  animation: panicPulse 1s ease-in-out infinite;
+}
+@keyframes panicPulse {
+  0%,100% { opacity: .35; }
+  50%     { opacity: .95; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.panic #panic-vignette { animation: none; opacity: .5; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   LIVE WRONG-GUESS PINGS
+══════════════════════════════════════════════════════════ */
+#wrong-ping-wrap {
+  position: fixed; top: 56px; left: 0; right: 0; z-index: 90;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  pointer-events: none;
+}
+.wrong-ping {
+  background: var(--red-bg); border: 1px solid var(--red);
+  color: #ff6b8a; font-size: .82rem; font-weight: 700;
+  padding: 3px 14px; border-radius: 20px;
+  animation: wrongPing 1.4s ease forwards;
+}
+.wrong-ping.near {
+  background: var(--gold-glow); border-color: var(--accent); color: var(--accent);
+}
+@keyframes wrongPing {
+  0%   { opacity: 0; transform: translateY(-10px) scale(.9); }
+  15%  { opacity: 1; transform: translateY(0) scale(1); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+/* hot-streak flame in scoreboards + near-miss guess feedback */
+.streak-flame { color: var(--accent); font-weight: 800; font-size: .85em; }
+.guess-feedback.near { color: var(--accent); }

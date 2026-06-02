@@ -121,3 +121,20 @@ Edit [`data/cards.js`](data/cards.js). Each card:
 ```js
 { secret: "كلمة سرية", forbidden: ["كلمة1", "كلمة2", "كلمة3", "كلمة4", "كلمة5"] }
 ```
+
+Cards the **host** adds in-game (➕ إضافة) are persisted to `data/custom-cards.json`
+(git-ignored runtime data) and preloaded into every future room, so they survive a
+server restart and are shared across rooms.
+
+## Juice & tension
+
+Client-side feedback layered on top of the server events:
+
+- **3-2-1 → انطلق! countdown** before each round (`round:countdown`).
+- **Confetti + green flash** on a correct guess; **red flash + hard screen-shake** on a violation.
+- **Final-10-seconds panic**: a pulsing red vignette plus an escalating tick → heartbeat.
+- **Live wrong-guess pings**: a subtle room-wide chip whenever anyone guesses wrong (the guess itself is never leaked).
+- **Near-miss feedback** (`🔥 قريب جدًا!`): a guess one edit away from the answer is flagged via server-side Levenshtein distance ([`isNearMiss`](server/normalize.js)).
+- **Hot-streak flame** (`🔥×N`) in the scoreboards when streak scoring is on.
+
+All visual effects honor `prefers-reduced-motion`.
