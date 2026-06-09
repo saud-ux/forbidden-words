@@ -1,0 +1,197 @@
+/* ══════════════════════════════════════════════════════════════
+   الكلمات المحظورة — VISUAL UPGRADE LAYER
+   Loaded AFTER style.css, so these rules win by cascade order.
+   Purely additive: delete the <link> to this file to revert.
+   Keeps the existing dark + warm-gold identity; adds depth,
+   glass, and glow. Also styles the new Exit button + confirm modal.
+   Uses var(--name, fallback) so it works even if a token is renamed.
+══════════════════════════════════════════════════════════════ */
+
+:root {
+  --fw-gold:      var(--accent, #f5a623);
+  --fw-gold-grad: linear-gradient(135deg, #ffcf6b 0%, #f5a623 55%, #e0851a 100%);
+  --fw-glow:      rgba(245, 166, 35, 0.28);
+  --fw-panel:     rgba(28, 28, 40, 0.66);
+  --fw-border:    rgba(245, 166, 35, 0.16);
+  --fw-hi:        rgba(255, 255, 255, 0.06);
+  --fw-shadow:    0 24px 70px rgba(0, 0, 0, 0.55);
+  --fw-red:       var(--red, #e8365d);
+  --fw-green:     var(--green, #26d47c);
+}
+
+/* ── Living, layered background ─────────────────────────────── */
+body {
+  background:
+    radial-gradient(60% 50% at 18% 12%, rgba(245,166,35,0.10), transparent 60%),
+    radial-gradient(55% 45% at 85% 8%,  rgba(110,90,255,0.06), transparent 60%),
+    radial-gradient(70% 60% at 50% 115%, rgba(245,166,35,0.06), transparent 60%),
+    linear-gradient(180deg, #0c0c11 0%, #0f0f15 100%);
+  background-attachment: fixed;
+}
+
+/* ── Glass panels — same layout, richer skin ───────────────── */
+.landing-card,
+.exp-card,
+.current-card-panel,
+.live-explanation-box,
+.modal-card,
+.ended-card {
+  background: var(--fw-panel);
+  border: 1px solid var(--fw-border);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  box-shadow: var(--fw-shadow), inset 0 1px 0 var(--fw-hi);
+}
+
+/* ── Primary buttons → warm gradient with depth ────────────── */
+.btn-primary {
+  background: var(--fw-gold-grad);
+  color: #1a1206;
+  border: none;
+  box-shadow: 0 6px 20px var(--fw-glow), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.btn-primary:not(:disabled):hover {
+  filter: brightness(1.06);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(245,166,35,0.40), inset 0 1px 0 rgba(255,255,255,0.40);
+}
+.btn:not(:disabled):active { transform: translateY(0) scale(.98); }
+
+/* ── Landing hero ──────────────────────────────────────────── */
+.logo-icon {
+  display: inline-block;
+  filter: drop-shadow(0 6px 24px var(--fw-glow));
+  animation: fwFloat 4s ease-in-out infinite;
+}
+@keyframes fwFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.logo h1 {
+  background: var(--fw-gold-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 16px var(--fw-glow));
+}
+
+/* ── Secret word — gradient gold + glow (the signature element) ─ */
+.secret-word-big,
+.secret-word-host,
+.secret-reveal {
+  background: var(--fw-gold-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 28px var(--fw-glow));
+}
+
+/* ── Timer ring — glow + gradient numerals ─────────────────── */
+.timer-ring { filter: drop-shadow(0 0 14px rgba(245,166,35,0.25)); }
+.timer-arc  { filter: drop-shadow(0 0 6px currentColor); transition: stroke-dashoffset 1s linear, stroke .3s ease; }
+.timer-num {
+  background: var(--fw-gold-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.timer-arc.danger { animation: fwPulse 1s ease-in-out infinite; }
+@keyframes fwPulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+
+/* ── Scoreboard — depth + winner glow ──────────────────────── */
+.score-row {
+  background: linear-gradient(180deg, rgba(40,40,56,0.70), rgba(26,26,38,0.70));
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: transform .12s ease, border-color .15s ease;
+}
+.score-row:hover { transform: translateX(-3px); border-color: var(--fw-border); }
+.score-row.winner-row {
+  background: linear-gradient(180deg, rgba(38,212,124,0.18), rgba(38,212,124,0.06));
+  box-shadow: 0 0 26px rgba(38,212,124,0.18);
+}
+.sc-chip {
+  background: linear-gradient(180deg, rgba(40,40,56,0.75), rgba(26,26,38,0.75));
+  backdrop-filter: blur(8px);
+}
+
+/* ── Forbidden words — clearer "danger" look ───────────────── */
+.forbidden-list li {
+  background: linear-gradient(180deg, rgba(232,54,93,0.16), rgba(232,54,93,0.08));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+/* ── Overlays — blur the world behind them ─────────────────── */
+.violation-overlay, .result-overlay, .modal-overlay {
+  background: rgba(8,6,12,0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ── Inputs — inner depth + gold focus ring ────────────────── */
+input[type="text"], input[type="number"], textarea, select {
+  background: rgba(20,20,30,0.70);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.25);
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.25), 0 0 0 3px rgba(245,166,35,0.18);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NEW UI — player top bar + Exit button
+══════════════════════════════════════════════════════════════ */
+.player-topbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.btn-exit {
+  flex: 0 0 auto;
+  border: 1px solid rgba(232,54,93,0.40);
+  background: rgba(232,54,93,0.08);
+  color: #ff6b8a;
+  font-family: 'Cairo', sans-serif;
+  font-weight: 700;
+  font-size: .8rem;
+  padding: 6px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.btn-exit:hover {
+  background: rgba(232,54,93,0.18);
+  border-color: var(--fw-red);
+  transform: translateY(-1px);
+}
+.btn-exit:active { transform: scale(.97); }
+
+/* ══════════════════════════════════════════════════════════════
+   NEW UI — confirm dialog
+══════════════════════════════════════════════════════════════ */
+.confirm-card {
+  max-width: 360px;
+  text-align: center;
+  align-items: center;
+}
+.confirm-icon {
+  font-size: 2.6rem;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 4px 16px rgba(232,54,93,0.35));
+}
+.confirm-message {
+  color: var(--text-dim, #8a8599);
+  font-size: 1rem;
+  margin: 2px 0 6px;
+  line-height: 1.6;
+}
+.confirm-card .modal-actions { width: 100%; }
+.btn-danger {
+  background: linear-gradient(135deg, #ff5a7a 0%, #e8365d 100%);
+  color: #fff;
+  border: none;
+}
+.btn-danger:hover { filter: brightness(1.06); transform: translateY(-1px); }
+
+/* ── Respect reduced-motion ────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .logo-icon, .timer-arc.danger { animation: none; }
+  .btn-primary:not(:disabled):hover,
+  .btn-exit:hover, .score-row:hover { transform: none; }
+}
