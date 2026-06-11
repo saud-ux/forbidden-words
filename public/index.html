@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style-upgrade.css" />
 </head>
 <body>
 
@@ -53,6 +54,7 @@
         <div class="host-topbar-actions">
           <button id="btn-toggle-streak" class="btn btn-sm btn-ghost">🔥 المتتالية: <span id="streak-status">إيقاف</span></button>
           <button id="btn-end-game" class="btn btn-sm btn-danger">إنهاء اللعبة</button>
+          <button id="btn-exit-host" class="btn-exit">خروج ⏏</button>
         </div>
       </div>
 
@@ -135,7 +137,10 @@
   <div id="screen-explainer" class="screen">
     <div class="explainer-layout">
 
-      <div class="room-badge-small" id="exp-room-code"></div>
+      <div class="player-topbar">
+        <div class="room-badge-small" id="exp-room-code"></div>
+        <button id="btn-exit-explainer" class="btn-exit">خروج ⏏</button>
+      </div>
 
       <!-- Timer -->
       <div class="timer-area">
@@ -197,7 +202,10 @@
   <div id="screen-guesser" class="screen">
     <div class="guesser-layout">
 
-      <div class="room-badge-small" id="guesser-room-code"></div>
+      <div class="player-topbar">
+        <div class="room-badge-small" id="guesser-room-code"></div>
+        <button id="btn-exit-guesser" class="btn-exit">خروج ⏏</button>
+      </div>
 
       <!-- Timer -->
       <div class="timer-area">
@@ -281,6 +289,21 @@
       <div class="modal-actions">
         <button id="btn-cancel-add-card" class="btn btn-ghost">إلغاء</button>
         <button id="btn-submit-add-card" class="btn btn-primary">إضافة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       MODAL: Confirm dialog (leave / end game)
+  ══════════════════════════════════════ -->
+  <div id="modal-confirm" class="modal-overlay hidden">
+    <div class="modal-card confirm-card">
+      <div class="confirm-icon">⚠️</div>
+      <h3 class="modal-title" id="confirm-title">تأكيد</h3>
+      <p id="confirm-message" class="confirm-message"></p>
+      <div class="modal-actions">
+        <button id="btn-confirm-no" class="btn btn-ghost">البقاء</button>
+        <button id="btn-confirm-yes" class="btn btn-danger">خروج</button>
       </div>
     </div>
   </div>
