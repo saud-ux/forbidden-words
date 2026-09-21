@@ -72,8 +72,10 @@ function clearSession() { try { sessionStorage.removeItem(SESSION_KEY); } catch 
 // ── Sound ──────────────────────────────────────────────────────
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
+let soundMuted = false;
 function getAudioCtx() { if (!audioCtx) audioCtx = new AudioCtx(); return audioCtx; }
 function playTone(freq, type, duration, gainVal = 0.3, delay = 0) {
+  if (soundMuted) return;
   try {
     const ctx = getAudioCtx();
     const o = ctx.createOscillator(), g = ctx.createGain();
@@ -85,6 +87,23 @@ function playTone(freq, type, duration, gainVal = 0.3, delay = 0) {
     o.stop(ctx.currentTime + delay + duration + 0.05);
   } catch (_) {}
 }
+
+// Sound toggle button
+(function initSoundToggle() {
+  const btn = document.getElementById('btn-sound-toggle');
+  if (!btn) return;
+  try { soundMuted = localStorage.getItem('fw_muted') === '1'; } catch (_) {}
+  function updateBtn() {
+    btn.textContent = soundMuted ? '🔇' : '🔊';
+    btn.classList.toggle('muted', soundMuted);
+  }
+  updateBtn();
+  btn.addEventListener('click', () => {
+    soundMuted = !soundMuted;
+    try { localStorage.setItem('fw_muted', soundMuted ? '1' : '0'); } catch (_) {}
+    updateBtn();
+  });
+})();
 function soundCorrect()    { playTone(523,'sine',.15,.3); playTone(659,'sine',.15,.3,.15); playTone(784,'sine',.25,.3,.3); }
 function soundViolation()  { playTone(180,'sawtooth',.4,.35); playTone(140,'sawtooth',.3,.35,.3); }
 function soundTimeout()    { playTone(330,'triangle',.4,.25); playTone(220,'triangle',.6,.25,.3); }
@@ -548,7 +567,7 @@ socket.on('round:countdown', ({ seconds }) => runCountdown(seconds || 3));
 socket.on('round:end', (data) => {
   setPanic(false);
   if (data.reason === 'correct') {
-    FX.flash('rgba(38,212,124,0.30)'); FX.confetti({ count:160, origin:'top' });
+    FX.flash('rgba(34,197,94,0.25)'); FX.confetti({ count:160, origin:'top' });
     if (state.streakEnabled) {
       const w = (data.scoreboard||[]).find(p => p.name === data.winnerName);
       if (w && w.streak >= 2) setTimeout(() => FX.bigText('🔥 '+w.streak, { color:'var(--accent)', ms:1100 }), 350);
@@ -556,7 +575,7 @@ socket.on('round:end', (data) => {
   }
 });
 
-socket.on('round:violation', () => { FX.flash('rgba(232,54,93,0.32)'); FX.shake('hard'); });
+socket.on('round:violation', () => { FX.flash('rgba(239,68,68,0.25)'); FX.shake('hard'); FX.glitchBurst(400); });
 
 let wrongPingWrap = null;
 function showWrongPing(name, near) {
